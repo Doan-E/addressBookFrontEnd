@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通讯录演示</title>
+    <style>
+        .rectangle {
+            width: 800px;
+            height: 600px;
+            background-color: white;
+            border: 1px solid black;
+            /* 边框 */
+            position: relative;
+            /* 相对定位 */
+        }
+
+        .box-browser {
+            /* 浏览区底框 */
+            width: 270px;
+            height: 570px;
+            background-color: #FAF7F0;
+            position: absolute;
+            /* 绝对定位 */
+            left: 15px;
+            /* x轴坐标 */
+            top: 15px;
+            /* y轴坐标 */
+        }
+
+        .overlay {
+            /* 在新建条目时防止错误操作的遮罩 */
+            position: absolute;
+            /* 绝对定位 */
+            top: 0;
+            left: 0;
+            width: 270px;
+            height: 570px;
+            background-color: rgba(134, 210, 147, 0.5); /* 半透明背景 */   
+            z-index: 100; /* 确保在其他元素之上 */         
+            pointer-events: auto; /* 允许事件 */
+            
+        }
+
+        .box-detail {
+            /* 详情区底框 */
+            width: 485px;
+            height: 570px;
+            background-color: #EAE4DD;
+            position: absolute;
+            left: 300px;
+            top: 15px;
+        }
+
+        .bottom-entry-detail {
+            width: 485px;
+            height: 570px;
+            background-color: #FAF7F0;
+            position: absolute;
+            left: 300px;
+            top: 15px;
+        }
+
+        .box-entry-limit {
+            /* 一个透明的限位框，控制增加的条目的显示范围 */
+            width: 270px;
+            height: 500px;
+            position: absolute;
+            left: 15px;
+            top: 75px;
+            overflow-y: auto; /* 允许垂直滚动 */
+        }
+
+        .contact-entry {
+            /*条目框  */
+            background-color: #FFFFFF;
+            border: 1px solid #D1BB9E;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+            color: #333333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .delete-button {
+            /*删除按钮  */
+            background-color: #C96868;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+            padding: 5px 10px;
+        }
+
+        .button {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;/* 水平居中 */
+        }
+
+        .button-new-built {
+            background-color: #86D293;
+            position: absolute;
+            left: 235px;
+            top: 30px;
+        }
+
+        .button-filter {
+            background-color: #D1BB9E;
+            position: absolute;
+            left: 190px;
+            top: 30px;
+        }
+
+        .button-new-built-confirm {
+            background-color: #86D293;
+            position: absolute;
+            left: 668px;
+            top: 90px;
+        }
+
+        .button-new-built-cancel {
+            background-color: #FCCD2A;
+            position: absolute;
+            left: 563px;
+            top: 90px;
+        }
+
+        .button-entry-clear {
+            background-color: #C96868;
+            position: absolute;
+            left: 613px;
+            top: 90px;
+        }
+        .button-contact-edit {
+            background-color: #FCCD2A;
+            position: absolute;
+            left: 668px;
+            top: 90px;
+        }
+        .button-contact-delete {
+            background-color: #C96868;
+            position: absolute;
+            left: 613px;
+            top: 90px;
+        }
+        .button-contact-edit-confirm {
+            background-color: #86D293;
+            position: absolute;
+            left: 668px;
+            top: 90px;
+        }
+
+        .box-new-phone-number {
+            width: 400px;
+            height: 70px;
+            background-color: #F8EDE3;
+            border: 1px solid #D1BB9E;
+            position: absolute;
+            left: 343px;
+            top: 215px;
+            border-radius: 5px;
+        }
+        .box-phone-number {
+            width: 400px;
+            height: 70px;
+            background-color: #F8EDE3;
+            border: 1px solid #D1BB9E;
+            position: absolute;
+            left: 343px;
+            top: 215px;
+            border-radius: 5px;
+            line-height: 70px;   /* 将 line-height 设置为与高度相同 */
+        }
+
+        .box-new-contact-name {
+            width: 400px;
+            height: 30px;
+            background-color: #F8EDE3;
+            border: 1px solid #D1BB9E;
+            position: absolute;
+            left: 343px;
+            top: 167px;
+            border-radius: 5px;
+        }
+        .box-contact-name {
+            width: 400px;
+            height: 30px;
+            background-color: #F8EDE3;
+            border: 1px solid #D1BB9E;
+            position: absolute;
+            left: 343px;
+            top: 167px;
+            border-radius: 5px;
+            text-align: center; /* 水平居中 */
+            line-height: 30px;  /* 将 line-height 设置为与高度相同 */
+        }
+
+        .box-search {
+            width: 160px;
+            height: 40px;
+            border: 1px solid #D1BB9E;
+            position: absolute;
+            left: 25px;
+            top: 30px;
+            border-radius: 5px;
+            align-items: center;/* 垂直居中 */
+        }
+
+        .search-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            padding: 5px;
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="rectangle">
+        <div class="box-browser" id="contactList">
+            <div class="overlay" id="overlay" style="display: none;"></div>
+        </div>
+        <div class="box-detail" id="addressDetail"></div>
+        <div class="bottom-entry-detail" id="entryDetailBottom"></div>
+        <div class="box-entry-limit" id="entryLimit"></div>
+        <button class="button button-new-built" id="newEntryButton">新建</button>
+        <button class="button button-filter" id="filterButton">搜索</button>
+        <div class="box-search">
+            <input type="text" class="search-input" id="searchBox" placeholder="搜索手机号">
+        </div>
+        <button class="button button-new-built-confirm" id="newEntryConfirm">确认</button>
+        <button class="button button-new-built-cancel" id="newEntryCancel">取消</button>
+        <button class="button button-contact-edit" id="editContactButton">编辑</button>
+        <button class="button button-contact-edit-confirm" id="editContactConfirm">确认</button>
+        <button class="button button-contact-delete" id="deleteContactButton">删除</button>
+        <button class="button button-entry-clear" id="clearInputButton">清空</button>
+        <div class="box-new-phone-number" id="newPhoneNumberBox">
+            <input type="text" id="phoneNumberInput" placeholder="输入手机号"
+                style="width: 100%; height: 100%; border: none; outline: none; padding: 10px; box-sizing: border-box; border-radius: 5px;">
+        </div>
+        <div class="box-new-contact-name" id="newContactNameBox">
+            <input type="text" id="contactNameInput" placeholder="输入联系人姓名"
+                style="width: 100%; height: 100%; border: none; outline: none; padding: 10px; box-sizing: border-box; border-radius: 5px; text-align: center; text-justify: center;">
+        </div>
+        <div class="box-phone-number" id="PhoneNumberBox"></div>
+        <div class="box-contact-name" id="ContactNameBox"></div>
+    </div>
+    <script>
+        //在创建一个联系人条目前，隐藏所有详情页元素
+        document.getElementById('entryDetailBottom').style.display = 'none';
+        document.getElementById('newEntryConfirm').style.display = 'none';
+        document.getElementById('newEntryCancel').style.display = 'none';
+        document.getElementById('PhoneNumberBox').style.display = 'none';
+        document.getElementById('ContactNameBox').style.display = 'none';
+        document.getElementById('newPhoneNumberBox').style.display = 'none';
+        document.getElementById('clearInputButton').style.display = 'none';
+        document.getElementById('newContactNameBox').style.display = 'none';
+        document.getElementById('editContactButton').style.display = 'none';
+        document.getElementById('editContactConfirm').style.display = 'none';
+        document.getElementById('deleteContactButton').style.display = 'none';
+
+        //将选中条目设置全局变量
+        let selectedEntry = null;
+        // 创建用于存储联系人数据的数组
+        let contacts = [];
+
+        //定义事件监听器
+        document.getElementById('newEntryButton').addEventListener('click', createEntry);
+        document.getElementById('clearInputButton').addEventListener('click', function () {
+            document.getElementById('phoneNumberInput').value = '';
+        });
+        document.getElementById('newEntryConfirm').addEventListener('click', confirmEntry);
+        document.getElementById('newEntryCancel').addEventListener('click', cancelEntry);
+        document.getElementById('filterButton').addEventListener('click', filterEntries);
+        document.getElementById('editContactButton').addEventListener('click', editContact);
+        document.getElementById('editContactConfirm').addEventListener('click', editConfirm);
+        document.getElementById('deleteContactButton').addEventListener('click', detailPageDeleteContact);
+
+        //点击新建按钮的事件处理函数
+        function createEntry() {
+            hideDetails();
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('entryDetailBottom').style.display = 'block';
+            document.getElementById('newContactNameBox').style.display = 'block';
+            document.getElementById('newPhoneNumberBox').style.display = 'block';
+            document.getElementById('newEntryConfirm').style.display = 'block';
+            document.getElementById('newEntryCancel').style.display = 'block';
+            document.getElementById('clearInputButton').style.display = 'block';
+        }
+
+        //在点击新建按钮后，取消新建条目按钮的事件处理函数
+        function cancelEntry() {
+            document.getElementById('phoneNumberInput').value = '';
+            document.getElementById('contactNameInput').value = '';
+            hideDetails();
+            document.getElementById('newEntryConfirm').style.display = 'none';
+            document.getElementById('newEntryCancel').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        //在点击新建按钮后，点击确认按钮的事件处理函数
+        async function confirmEntry() {
+            const contactNameInput = document.getElementById('contactNameInput').value.trim();
+            const phoneNumberInput = document.getElementById('phoneNumberInput').value.trim();
+            if (contactNameInput === '') {
+                alert('请输入联系人姓名');
+                return;
+            }
+            if (phoneNumberInput === '') {
+                alert('请输入手机号');
+                return;
+            }
+
+            try {
+                // 如果成功，添加新的联系条目到页面
+                await addContact(contactNameInput, phoneNumberInput);
+                hideDetails();
+                document.getElementById('newEntryConfirm').style.display = 'none';
+                document.getElementById('newEntryCancel').style.display = 'none';
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('phoneNumberInput').value = '';
+                document.getElementById('contactNameInput').value = '';
+            } catch (error) {
+                alert('添加联系人失败，请重试。');
+            }
+        }
+        
+        // 添加新联系人的异步函数
+        async function addContact(contactNameInput, phoneNumberInput) {
+            const response = await fetch('http://localhost:8081/api/contacts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: contactNameInput, phone: phoneNumberInput }),
+            });
+
+            if (response.ok) {
+                const newContact = {
+                    id: contacts.length ? contacts[contacts.length - 1].id + 1 : 1, // 自增ID
+                    name: contactNameInput,
+                    phone: phoneNumberInput,
+                };
+                // 将新联系人添加到数组中
+                contacts.push(newContact);
+                // 创建新条目元素并展示
+                const newEntryElement = createContactEntry(newContact);
+                document.getElementById('entryLimit').appendChild(newEntryElement);
+            } else {
+                console.error('无法添加联系人:', response.status);
+            }
+        }
+
+        // 创建联系人条目元素的函数
+        function createContactEntry(contact) {
+            const newEntryElement = document.createElement('div');
+            newEntryElement.className = 'contact-entry';
+            newEntryElement.dataset.contactId = contact.id;
+            newEntryElement.style.position = 'relative';
+            newEntryElement.style.left = '10px';
+            newEntryElement.style.top = (document.querySelectorAll('.contact-entry').length * 10) + 'px';
+            newEntryElement.style.width = '230px';
+            newEntryElement.style.height = '60px';
+            newEntryElement.style.zIndex = '10';
+            newEntryElement.innerHTML = `${contact.name}<br>${contact.phone}`;
+
+            //点击条目元素的事件监听器，点击后切换条目的选中状态
+            newEntryElement.addEventListener('click', function () {
+                if (selectedEntry && selectedEntry !== newEntryElement) {
+                    selectedEntry.classList.remove('selected');
+                }
+                if (selectedEntry === newEntryElement) {
+                    newEntryElement.classList.remove('selected');
+                    selectedEntry = null;
+                    hideDetails();
+                } else {
+                    newEntryElement.classList.add('selected');
+                    selectedEntry = newEntryElement;
+                    showContactDetail(contact); // 显示联系人详情
+                    document.getElementById('entryDetailBottom').style.display = 'block';
+                    document.getElementById('ContactNameBox').style.display = 'block';
+                    document.getElementById('PhoneNumberBox').style.display = 'block';
+                    document.getElementById('editContactButton').style.display = 'block';
+                    document.getElementById('deleteContactButton').style.display = 'block';
+                }
+            });
+
+            return newEntryElement;
+        }
+
+        // 读取并显示联系人的详细信息的函数
+        function showContactDetail(contact) {
+            ContactNameBox.textContent = `${contact.name}`;
+            PhoneNumberBox.textContent = `${contact.phone}`;
+        }
+
+        //删除按钮的事件处理函数
+        async function detailPageDeleteContact() {
+            if (selectedEntry) {
+                const contactId = selectedEntry.dataset.contactId;
+                const contact = contacts.find(c => c.id == contactId);
+                // 先发送删除请求到后端
+                const response = await fetch(`http://localhost:8081/api/contacts/${contact.id}`, {
+                    method: 'DELETE', // 使用 DELETE 方法来删除资源
+                });
+
+                if (response.ok) {
+                    deleteContact(contact.id); // 从前端数组中删除联系人
+                    selectedEntry.remove(); // 从DOM中移除这个条目
+                    hideDetails();
+                } else {
+                    alert('删除联系人失败，请重试。');
+                }
+            } else {
+                alert('请先选择一个联系人进行删除');
+            }
+        }
+
+        // 从数据库删除联系人的函数
+        function deleteContact(contactId) {
+            // 从联系人数组中删除对应的联系人
+            contacts = contacts.filter(contact => contact.id !== contactId);
+        }
+
+        //编辑条目按钮的事件处理函数
+        function editContact(){
+            if (selectedEntry) {
+                const contactId = selectedEntry.dataset.contactId;
+                const contact = contacts.find(c => c.id == contactId);
+
+                hideDetails();
+                document.getElementById('entryDetailBottom').style.display = 'block';
+
+                // 显示输入框和确认按钮
+                document.getElementById('newContactNameBox').style.display = 'block';
+                document.getElementById('contactNameInput').value = contact.name;
+                document.getElementById('newPhoneNumberBox').style.display = 'block';
+                document.getElementById('phoneNumberInput').value = contact.phone;
+                document.getElementById('editContactConfirm').style.display = 'block';
+            } else {
+                alert('请先选择一个联系人进行编辑');
+            }
+        }
+
+        //确认编辑按钮的事件处理函数
+        async function editConfirm(){
+            const contactNameInput = document.getElementById('contactNameInput').value.trim();
+            const phoneNumberInput = document.getElementById('phoneNumberInput').value.trim();
+
+            if (contactNameInput === '') {
+                alert('请输入联系人姓名');
+                return;
+            }
+            if (phoneNumberInput === '') {
+                alert('请输入手机号');
+                return;
+            }
+
+            try {
+                const contactId = selectedEntry.dataset.contactId;
+                await updateContact(contactId, contactNameInput, phoneNumberInput);
+
+                // 更新前端联系人的信息
+                const contactIndex = contacts.findIndex(c => c.id == contactId);
+                contacts[contactIndex].name = contactNameInput;
+                contacts[contactIndex].phone = phoneNumberInput;
+
+                // 更新页面上显示的条目
+                selectedEntry.innerHTML = `${contactNameInput}<br>${phoneNumberInput}`;
+
+                // 隐藏输入框和按钮
+                hideDetails();
+            } catch (error) {
+                alert('编辑联系人失败，请重试。');
+            }
+        }
+
+        // 在数据库中更新联系人的函数
+        async function updateContact(contactId, contactName, phoneNumber) {
+            const response = await fetch(`http://localhost:8081/api/contacts/${contactId}`, {
+                method: 'PUT', // 使用 PUT 方法更新资源
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: contactName, phone: phoneNumber }),
+            });
+
+            if (!response.ok) {
+                console.error('无法更新联系人:', response.status);
+                throw new Error('无法更新联系人');
+            }
+        }
+
+        //通过关键词搜索筛选联系人条目的函数
+        function filterEntries() {
+            // 获取搜索框中的值，并去除前后空格
+            const searchValue = document.getElementById('searchBox').value.trim();
+            // 选取所有的联系人条目元素
+            const entries = document.querySelectorAll('.contact-entry');
+            // 遍历每一个联系人条目
+            entries.forEach(entry => {
+                if (entry.textContent.includes(searchValue)) {
+                    entry.style.display = 'block';
+                } else {
+                    entry.style.display = 'none';
+                }
+            });
+        }
+        //隐藏和显示包含详细内容组件的函数
+        function hideDetails() {
+            document.getElementById('entryDetailBottom').style.display = 'none';
+            document.getElementById('newContactNameBox').style.display = 'none';
+            document.getElementById('newPhoneNumberBox').style.display = 'none';
+            document.getElementById('ContactNameBox').style.display = 'none';
+            document.getElementById('PhoneNumberBox').style.display = 'none';
+            document.getElementById('clearInputButton').style.display = 'none';
+            document.getElementById('editContactButton').style.display = 'none';
+            document.getElementById('editContactConfirm').style.display = 'none';
+            document.getElementById('deleteContactButton').style.display = 'none';
+        }
+        function showDetails() {
+            document.getElementById('entryDetailBottom').style.display = 'block';
+            document.getElementById('ContactNameBox').style.display = 'block';
+            document.getElementById('PhoneNumberBox').style.display = 'block';
+            document.getElementById('clearInputButton').style.display = 'block';
+        }
+
+    </script>
+</body>
+
+</html>
